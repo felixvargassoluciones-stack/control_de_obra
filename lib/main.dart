@@ -154,37 +154,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-        actions: [
-          // Indicador visual del estado de la conexión a internet
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // CORRECCIÓN: Reemplazado py por vertical
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  CircleAvatar(
-                    radius: 4,
-                    backgroundColor: Colors.greenAccent,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Nube Sincronizada',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      actions: const [],
+
       ),
       // El menú lateral izquierdo desplegable solo se activa en dispositivos móviles o tablets
       drawer: esComputadora ? null : AppDrawer(
@@ -791,7 +762,38 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+          // Indicador de sincronización reubicado para evitar colisiones visuales
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF388E3C).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF388E3C).withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  CircleAvatar(
+                    radius: 4,
+                    backgroundColor: Color(0xFF388E3C),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Estatus: Nube Sincronizada',
+                    style: TextStyle(
+                      color: Color(0xFF102A43),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
           // Etiqueta indicadora de navegación móvil
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
@@ -805,6 +807,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
+
           // Lista de opciones seleccionables del Drawer
           Expanded(
             child: ListView.builder(

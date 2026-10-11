@@ -46,6 +46,14 @@ class ItemChecklist {
 class _LevantamientoScreenState extends State<LevantamientoScreen> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
+  late final TextEditingController _tituloLevantamientoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tituloLevantamientoController = TextEditingController(text: widget.nombreObra);
+  }
+
   bool _sincronizandoNube = false;
 
   // Lista dinámica principal donde se acumularán las evidencias fotográficas con su descripción
@@ -100,8 +108,9 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
         // Operación crítica: Extraer bytes asíncronos para garantizar visualización en GitHub Pages
         final Uint8List bytes = await foto.readAsBytes();
         
-        setState(() {
-          _listaEvidencias.add(
+          setState(() {
+          _listaEvidencias.insert(
+            0,
             EvidenciaInspeccion(
               archivo: foto,
               bytesWeb: bytes,
@@ -109,6 +118,7 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
             ),
           );
         });
+
       }
     } catch (e) {
       if (!mounted) return;
@@ -128,7 +138,8 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
         for (var foto in fotosSeleccionadas) {
           final Uint8List bytes = await foto.readAsBytes();
           setState(() {
-            _listaEvidencias.add(
+            _listaEvidencias.insert(
+              0,
               EvidenciaInspeccion(
                 archivo: foto,
                 bytesWeb: bytes,
@@ -136,6 +147,7 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
               ),
             );
           });
+
         }
       }
     } catch (e) {
@@ -201,14 +213,31 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Título Principal del Proyecto Asignado
-                    Text(
-                      widget.nombreObra,
+                                        // Título Principal Editable del Levantamiento
+                    TextFormField(
+                      controller: _tituloLevantamientoController,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF102A43),
                       ),
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre / Título del Levantamiento',
+                        labelStyle: TextStyle(fontSize: 14, color: Color(0xFF627D98)),
+                        border: InputBorder.none,
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF102A43), width: 2),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'El título del levantamiento no puede estar vacío';
+                        }
+                        return null;
+                      },
                     ),
+
                     const SizedBox(height: 6),
                     const Text(
                       'Registre evidencias visuales con descripciones puntuales y valide las listas de seguridad y equipos.',
