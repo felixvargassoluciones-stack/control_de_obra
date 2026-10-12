@@ -48,11 +48,12 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
   final ImagePicker _picker = ImagePicker();
   late final TextEditingController _tituloLevantamientoController;
 
-  @override
+   @override
   void initState() {
     super.initState();
-    _tituloLevantamientoController = TextEditingController(text: widget.nombreObra);
+    _tituloLevantamientoController = TextEditingController();
   }
+
 
   bool _sincronizandoNube = false;
 
@@ -214,8 +215,11 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
                   children: [
                     // Título Principal del Proyecto Asignado
                                         // Título Principal Editable del Levantamiento
+                                       // Título Principal Editable del Levantamiento (Multilínea Activo)
                     TextFormField(
                       controller: _tituloLevantamientoController,
+                      maxLines: null, // Permite crecimiento dinámico ilimitado
+                      keyboardType: TextInputType.multiline, // Configura el teclado con botón 'Enter' en móviles
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -224,6 +228,7 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Nombre / Título del Levantamiento',
                         labelStyle: TextStyle(fontSize: 14, color: Color(0xFF627D98)),
+                        hintText: 'Ej: Remodelación de Fachada Corporativa Centro...',
                         border: InputBorder.none,
                         focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFF102A43), width: 2),
@@ -237,6 +242,7 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
                         return null;
                       },
                     ),
+
 
                     const SizedBox(height: 6),
                     const Text(
