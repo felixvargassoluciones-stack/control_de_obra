@@ -84,16 +84,19 @@ class LevantamientoRepository {
       // 3. Serialización estricta del modelo de datos hacia una cadena JSON (String)
       final String cuerpoJsonSerializado = jsonEncode(modelo.toJson());
 
-      // 4. Ejecución del canal HTTP POST inyectando cabeceras de control para evitar rebotes de CORS
+           // 4. Modificación CORS: Envío en formato plano para evitar peticiones preflight (OPTIONS) del navegador
       final http.Response respuestaServidor = await http.post(
         urlServidor,
         headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: cuerpoJsonSerializado,
+        body: {
+          'jsonData': cuerpoJsonSerializado,
+        },
       ).timeout(
-        const Duration(seconds: 45), // Tiempo senior de tolerancia para permitir la decodificación pesada de fotos en Drive
+        const Duration(seconds: 45),
       );
+
 
       // 5. Análisis sintáctico del código de estatus del servidor web
       if (respuestaServidor.statusCode == 200) {
