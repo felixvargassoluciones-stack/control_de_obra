@@ -41008,7 +41008,9 @@ k(a){return"Stack Overflow"},
 grA(){return null},
 $ic4:1}
 A.Dt.prototype={
-k(a){return"Exception: "+this.a},
+k(a){var s=this.a
+if(s==null)return"Exception"
+return"Exception: "+A.j(s)},
 $ibU:1}
 A.ed.prototype={
 k(a){var s,r,q,p,o,n,m,l,k,j,i,h=this.a,g=""!==h?"FormatException: "+h:"FormatException",f=this.c,e=this.b
@@ -43007,20 +43009,20 @@ zx(a){return this.anB(a)},
 anB(a){var s=0,r=A.N(t.y),q,p=2,o=[],n,m,l,k,j,i,h,g
 var $async$zx=A.O(function(b,c){if(b===1){o.push(c)
 s=p}for(;;)switch(s){case 0:p=4
-n=A.hf("https://script.google.com/macros/s/AKfycbyOZcIb-_VirLZmaRQcktYyKpT30zqK8xYu54-0D4C98n8SXqSo3BNRssIWKLYfgPLV/exec")
-m=B.dd.W5(a.it(),null)
+n=B.dd.W5(a.it(),null)
+k=A.hf("https://script.google.com/macros/s/AKfycbyOZcIb-_VirLZmaRQcktYyKpT30zqK8xYu54-0D4C98n8SXqSo3BNRssIWKLYfgPLV/exec")
 j=t.N
 i=A.ai(["Content-Type","application/x-www-form-urlencoded"],j,j)
 s=7
-return A.J(A.aSb(n,A.ai(["jsonData",m],j,j),i).Bp(B.EJ),$async$zx)
-case 7:l=c
-if(l.b===200){j=l
-k=t.a.a(B.dd.VB(A.aRk(A.aPd(j.e)).h4(j.w),null))
-if(J.d(J.jU(k,"status"),"SUCCESS")){q=!0
+return A.J(A.aSb(k,A.ai(["jsonData",n],j,j),i).Bp(B.EJ),$async$zx)
+case 7:m=c
+if(m.b===200){k=m
+l=t.a.a(B.dd.VB(A.aRk(A.aPd(k.e)).h4(k.w),null))
+if(J.d(J.jU(l,"status"),"SUCCESS")){q=!0
 s=1
-break}else{j=A.d_("Fallo l\xf3gico reportado por Apps Script: "+A.j(J.jU(k,"message")))
-throw A.i(j)}}else{j=A.d_("Error de conexi\xf3n externa. C\xf3digo de error del servidor de Google: "+l.b)
-throw A.i(j)}p=2
+break}else{k=A.d_(J.jU(l,"message"))
+throw A.i(k)}}else{k=A.d_("Error de respuesta del servidor: "+m.b)
+throw A.i(k)}p=2
 s=6
 break
 case 4:p=3

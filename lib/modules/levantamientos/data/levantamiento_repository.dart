@@ -11,7 +11,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-//import 'package:image_picker/image_picker.dart';
+
 
 // Modelo de datos técnico para estructurar y mapear de forma segura el paquete
 // JSON de salida hacia el endpoint de Google Apps Script.
@@ -69,24 +69,17 @@ class LevantamientoRepository {
    * @param modelo El contenedor estructurado con los datos del reporte.
    * @return Future<bool> Retorna verdadero si el Sheets confirmó la fila con código 200.
    */
-  Future<bool> enviarReporteAAppsScript(LevantamientoDataModel modelo) async {
+   Future<bool> enviarReporteAAppsScript(LevantamientoDataModel modelo) async {
     try {
-      // 1. Validación preventiva de existencia de la URL del endpoint de red
-           // 1. Validación preventiva de existencia de la URL del endpoint de red
       if (_endpointAppsScript == "PEGA_AQUI_TU_URL_DE_EXEC_DE_GOOGLE" || _endpointAppsScript.isEmpty) {
         throw Exception("Error de Configuración Local: No se ha parametrizado el enlace URL definitivo de Google Apps Script.");
       }
 
+            final String cuerpoJsonSerializado = jsonEncode(modelo.toJson());
 
-      // 2. Parseo sintáctico de la URI del microservicio cloud
-      final Uri urlServidor = Uri.parse(_endpointAppsScript);
-
-      // 3. Serialización estricta del modelo de datos hacia una cadena JSON (String)
-      final String cuerpoJsonSerializado = jsonEncode(modelo.toJson());
-
-           // 4. Modificación CORS: Envío en formato plano para evitar peticiones preflight (OPTIONS) del navegador
+      // Petición estándar compatible con la web inyectando parámetros de formulario plano
       final http.Response respuestaServidor = await http.post(
-        urlServidor,
+        Uri.parse(_endpointAppsScript),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -97,26 +90,27 @@ class LevantamientoRepository {
         const Duration(seconds: 45),
       );
 
-
-      // 5. Análisis sintáctico del código de estatus del servidor web
       if (respuestaServidor.statusCode == 200) {
         final Map<String, dynamic> cuerpoRespuesta = jsonDecode(respuestaServidor.body) as Map<String, dynamic>;
-        
-        // Verificación del estatus lógico emitido por nuestra función generarRespuestaError en code.gs
         if (cuerpoRespuesta['status'] == 'SUCCESS') {
           return true;
         } else {
-          throw Exception("Fallo lógico reportado por Apps Script: ${cuerpoRespuesta['message']}");
+          throw Exception(cuerpoRespuesta['message']);
         }
       } else {
-        throw Exception("Error de conexión externa. Código de error del servidor de Google: ${respuestaServidor.statusCode}");
+        throw Exception("Error de respuesta del servidor: ${respuestaServidor.statusCode}");
       }
 
+
+      // Debido a que 'no-cors' no permite leer la respuesta por privacidad del navegador, 
+      // validamos que la petición se haya enviado de manera correcta al servidor de Google.
+    
+
     } catch (excepcionRed) {
-      // Propagación limpia del rastro del error hacia la capa de presentación para notificar al supervisor
       rethrow;
     }
   }
+
   /*
    * Método de abstracción técnica. Recibe los controladores dinámicos directamente de la UI,
    * extrae los bytes y descripciones, y empaqueta todo de forma asíncrona hacia el pipeline de red.
