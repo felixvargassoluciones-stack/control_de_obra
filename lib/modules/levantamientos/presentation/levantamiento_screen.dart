@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../data/levantamiento_repository.dart'; // Conexión directa a la capa de datos
+
 
 /// Pantalla reestructurada del Módulo de Levantamientos Técnicos en Campo.
 /// Implementa un flujo operativo basado en inspección fotográfica detallada por punto,
@@ -44,9 +46,10 @@ class ItemChecklist {
 }
 
 class _LevantamientoScreenState extends State<LevantamientoScreen> {
-  final _formKey = GlobalKey<FormState>();
+    final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   late final TextEditingController _tituloLevantamientoController;
+  final LevantamientoRepository _repository = LevantamientoRepository(); // Instancia del conector Cloud
 
      @override
   void initState() {
@@ -172,19 +175,36 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
       return;
     }
 
-    setState(() => _sincronizandoNube = true);
+        setState(() => _sincronizandoNube = true);
 
-    // Simulación técnica de latencia de red para validar el estado de carga (Loading status)
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _sincronizandoNube = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Inspección de campo y reportes de seguridad sincronizados con éxito.')),
+    try {
+      // Disparo del pipeline asíncrono hacia el repositorio central
+      final bool exito = await _repository.procesarYEnviar(
+        idProyecto: widget.idProyecto,
+        tituloLevantamiento: _tituloLevantamientoController.text,
+        checklistEquiposRaw: _checklistEquipos,
+        checklistSeguridadRaw: _checklistSeguridad,
+        listaEvidenciasRaw: _listaEvidencias,
       );
-      Navigator.pop(context);
+
+      if (exito && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Inspección de campo y reportes de seguridad sincronizados con éxito.')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: const Color(0xFFD32F2F), content: Text('❌ Error al sincronizar con la nube: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sincronizandoNube = false);
+      }
     }
+
   }
 
   @override
