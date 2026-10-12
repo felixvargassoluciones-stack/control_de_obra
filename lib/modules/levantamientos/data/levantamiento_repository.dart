@@ -72,9 +72,11 @@ class LevantamientoRepository {
   Future<bool> enviarReporteAAppsScript(LevantamientoDataModel modelo) async {
     try {
       // 1. Validación preventiva de existencia de la URL del endpoint de red
-      if (_endpointAppsScript == "https://script.google.com/macros/s/AKfycbyOZcIb-_VirLZmaRQcktYyKpT30zqK8xYu54-0D4C98n8SXqSo3BNRssIWKLYfgPLV/exec" || _endpointAppsScript.isEmpty) {
+           // 1. Validación preventiva de existencia de la URL del endpoint de red
+      if (_endpointAppsScript == "PEGA_AQUI_TU_URL_DE_EXEC_DE_GOOGLE" || _endpointAppsScript.isEmpty) {
         throw Exception("Error de Configuración Local: No se ha parametrizado el enlace URL definitivo de Google Apps Script.");
       }
+
 
       // 2. Parseo sintáctico de la URI del microservicio cloud
       final Uri urlServidor = Uri.parse(_endpointAppsScript);
