@@ -48,11 +48,13 @@ class _LevantamientoScreenState extends State<LevantamientoScreen> {
   final ImagePicker _picker = ImagePicker();
   late final TextEditingController _tituloLevantamientoController;
 
-   @override
+     @override
   void initState() {
     super.initState();
-    _tituloLevantamientoController = TextEditingController();
+    // Forzamos explícitamente una cadena vacía al iniciar el estado de la UI
+    _tituloLevantamientoController = TextEditingController(text: '');
   }
+
 
 
   bool _sincronizandoNube = false;
