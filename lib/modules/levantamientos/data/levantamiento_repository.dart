@@ -50,7 +50,7 @@ class LevantamientoDataModel {
 class LevantamientoRepository {
   // Constante estricta del Endpoint de Producción de Google Apps Script.
   // REGLA: Pegue aquí la URL de la Aplicación Web generada en el paso anterior.
-  static const String _endpointAppsScript = "PEGA_AQUI_TU_URL_DE_EXEC_DE_GOOGLE";
+  static const String _endpointAppsScript = "https://script.google.com/macros/s/AKfycbyOZcIb-_VirLZmaRQcktYyKpT30zqK8xYu54-0D4C98n8SXqSo3BNRssIWKLYfgPLV/exec";
 
   /*
    * Utilería de bajo nivel encargada de procesar los bytes binarios de la imagen
@@ -72,7 +72,7 @@ class LevantamientoRepository {
   Future<bool> enviarReporteAAppsScript(LevantamientoDataModel modelo) async {
     try {
       // 1. Validación preventiva de existencia de la URL del endpoint de red
-      if (_endpointAppsScript == "PEGA_AQUI_TU_URL_DE_EXEC_DE_GOOGLE" || _endpointAppsScript.isEmpty) {
+      if (_endpointAppsScript == "https://script.google.com/macros/s/AKfycbyOZcIb-_VirLZmaRQcktYyKpT30zqK8xYu54-0D4C98n8SXqSo3BNRssIWKLYfgPLV/exec" || _endpointAppsScript.isEmpty) {
         throw Exception("Error de Configuración Local: No se ha parametrizado el enlace URL definitivo de Google Apps Script.");
       }
 
