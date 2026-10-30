@@ -1,23 +1,38 @@
 /*
  * ============================================================================
- *         🦺 CONTROL DE OBRA — ARCHIVO PRINCIPAL DE ENTRADA
+ *         🦺 CONTROL DE OBRA — ARCHIVO PRINCIPAL DE ENTRADA (PARTE 1 DE 6)
  * ============================================================================
  * Desarrollado para: Ing. Félix Vargas
  * Ruta Física: lib/main.dart
  * Lenguaje: Dart (Flutter)
+ * Persistencia: Supabase Production Environment
  * Diseño: Material 3 Adaptativo (PC / Tablet / Móvil)
  * ============================================================================
  */
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'modules/levantamientos/presentation/levantamiento_screen.dart';
+import 'modules/cotizador/presentation/cotizador_screen.dart';
 
-void main() {
+
+void main() async {
+  // Asegura la correcta inicialización de los bindings del framework antes de arrancar servicios asíncronos
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicialización de la persistencia nativa con tus credenciales de producción
+  await Supabase.initialize(
+    url: 'https://wjwjjeyfdvmmjhbhustc.supabase.co',
+    publishableKey: 'sb_publishable_v3rQvW3EZKPWFZVBXMxGOw_GgmI-G8f',
+  );
+
   runApp(const ControlDeObraApp());
 }
 
-/// Punto de entrada principal de la aplicación corporativa "Control De Obra".
-/// Configura los parámetros globales de diseño, temas visuales y paleta corporativa.
+/// Instancia global para acceder de forma rápida al cliente de base de datos desde cualquier módulo
+final SupabaseClient supabase = Supabase.instance.client;
+
+/// Punto de entrada principal de la interfaz corporativa "Control De Obra".
 class ControlDeObraApp extends StatelessWidget {
   const ControlDeObraApp({super.key});
 
@@ -39,7 +54,6 @@ class ControlDeObraApp extends StatelessWidget {
           surface: const Color(0xFFF0F4F8),
           error: const Color(0xFFD32F2F),
         ),
-        
         // Tipografías legibles optimizadas para dispositivos de supervisión
         textTheme: const TextTheme(
           headlineMedium: TextStyle(
@@ -76,6 +90,7 @@ class ControlDeObraApp extends StatelessWidget {
     );
   }
 }
+
 /// Pantalla base del Dashboard que implementa la distribución responsiva adaptativa.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -87,8 +102,6 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _moduloSeleccionado = 0;
 
-  // Catálogo modular del sistema supervisor.
-  // NOTA DE MIGRACIÓN: Los IDs internos servirán para mapear los permisos de Supabase Auth en el futuro.
   final List<Map<String, dynamic>> _itemsModulos = [
     {
       'titulo': 'CRM Comercial',
@@ -112,7 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'id': 'cotizador',
     },
     {
-      'titulo': 'Plan de Ejecución',
+      'titulo': 'Plan de Execution',
       'subtitulo': 'Cronograma de actividades, bitácora diaria y control de obra.',
       'icono': Icons.assignment_rounded,
       'color': const Color(0xFF7B1FA2),
@@ -125,7 +138,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _moduloSeleccionado = index;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final double anchoPantalla = MediaQuery.of(context).size.width;
@@ -214,8 +226,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             icono: item['icono'] as IconData,
                             color: item['color'] as Color,
                             esActivo: esActivo,
-                            onTap: () {
+                                                        onTap: () {
                               _cambiarModulo(index);
+                              
+                              // Enrutamiento al Módulo de Levantamientos (Índice 1)
                               if (index == 1) {
                                 Navigator.push(
                                   context,
@@ -227,7 +241,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                 );
                               }
+                              
+                              // NUEVO: Enrutamiento al Módulo del Cotizador / Presupuestos (Índice 2)
+                              if (index == 2) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CotizadorScreen(
+                                      idProyecto: 'PRY-2026-001',
+                                      nombreObra: 'Remodelación de Fachada Corporativa Centro',
+                                    ),
+                                  ),
+                                );
+                              }
                             },
+
                           );
                         },
                         childCount: _itemsModulos.length,
@@ -244,7 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text('Resumen Operativo Global', style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 8),
                           Text(
-                            'Datos consolidados directamente desde la base de datos centralizado.',
+                            'Datos consolidados directamente desde la base de datos centralizada.',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 24),
@@ -319,6 +347,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
+
 /// Componente visual reutilizable para mostrar indicadores contables u operativos masivos.
 class MetricTile extends StatelessWidget {
   final String titulo;
@@ -382,7 +411,6 @@ class MetricTile extends StatelessWidget {
     );
   }
 }
-
 /// Widget de tarjeta interactiva y estilizada que representa cada módulo operativo.
 class ModuloCard extends StatefulWidget {
   final String titulo;

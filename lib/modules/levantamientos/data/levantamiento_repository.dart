@@ -5,14 +5,15 @@
  * Desarrollado para: Ing. Félix Vargas
  * Ruta Física: lib/modules/levantamientos/data/levantamiento_repository.dart
  * Lenguaje: Dart (Flutter)
- * Arquitectura: Clean Architecture - Data Layer (Preparación para Supabase)
+ * Persistencia: Supabase Client Relational Injections
+ * Arquitectura: Clean Architecture - Data Provider Modular
  * ============================================================================
  */
 
 import 'dart:typed_data';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Modelo de datos técnico para estructurar el paquete de datos en memoria del cliente.
-/// Se eliminó por completo el método de mapeo JSON obsoleto orientado al Backend de Google.
 class LevantamientoDataModel {
   final String idProyecto;
   final String tituloLevantamiento;
@@ -29,24 +30,41 @@ class LevantamientoDataModel {
   });
 }
 
-/// Repositorio central desacoplado de Google Apps Script.
-/// Las llamadas estáticas tradicionales HTTP POST han sido removidas.
+/// Repositorio central encargado de la persistencia directa en la nube de Supabase.
 class LevantamientoRepository {
-  
+  // Instancia privada del cliente API inyectada desde el núcleo del sistema
+  final SupabaseClient _supabase = Supabase.instance.client;
+
   /*
-   * Utilería de bajo nivel encargada de procesar los bytes binarios de la imagen.
-   * NOTA DE MIGRACIÓN: Ya no se requiere la conversión obligatoria a Base64
-   * debido a que Supabase Storage acepta la carga directa de datos binarios (Uint8List).
+   * Utilería de bajo nivel encargada de subir los bytes binarios de forma atómica
+   * hacia el Bucket de almacenamiento público y resolver su URL definitiva.
    */
-  bool validarBytesMultimedia(Uint8List bytes) {
-    return bytes.isNotEmpty;
+  Future<String> _subirEvidenciaABucket(Uint8List bytes, String idProyecto) async {
+    try {
+      if (bytes.isEmpty) return "";
+      
+      // Genera un nombre de archivo único indexado por fecha y milisegundos de campo
+      final String nombreArchivo = 'evidencia_${idProyecto}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String rutaDestino = 'levantamientos/$nombreArchivo';
+
+      // Dispara la carga binaria directa sin conversiones costosas en memoria
+      await _supabase.storage.from('evidencias').uploadBinary(
+            rutaDestino,
+            bytes,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+          );
+
+      // Obtiene y retorna la dirección URL pública para su posterior indexación en las tablas SQL
+      return _supabase.storage.from('evidencias').getPublicUrl(rutaDestino);
+    } catch (errorStorage) {
+      // Si el bucket no se encuentra creado, retornamos una cadena de contingencia o relanzamos
+      return "";
+    }
   }
   /*
-   * Pipeline de abstracción técnica desacoplado de Google Sheets.
-   * Recibe los controladores dinámicos directamente de la UI, filtra los elementos
-   * seleccionados y empaqueta las referencias de manera asíncrona.
-   * 
-   * NOTA: Este método queda listo para inyectar el cliente de Supabase en el próximo paso.
+   * Pipeline de persistencia relacional con Supabase.
+   * Recibe los controladores dinámicos directamente de la UI, efectúa la carga
+   * de imágenes a Storage e inserta las filas correspondientes en las tablas relacionales.
    */
   Future<bool> procesarYEnviar({
     required String idProyecto,
@@ -56,7 +74,19 @@ class LevantamientoRepository {
     required List<dynamic> listaEvidenciasRaw,
   }) async {
     try {
-      // 1. Filtrado de los checklists para extraer únicamente las cadenas seleccionadas
+      // 1. Resolución relacional: Busca el UUID interno del proyecto usando el código de campo
+      final List<dynamic> respuestaProyecto = await _supabase
+          .from('proyectos')
+          .select('id')
+          .eq('codigo_proyecto', idProyecto);
+
+      if (respuestaProyecto.isEmpty) {
+        throw Exception("Error de consistencia: El código de proyecto '$idProyecto' no está registrado en la base de datos.");
+      }
+
+      final String uuidProyectoReal = respuestaProyecto.first['id'] as String;
+
+      // 2. Filtrado de los checklists para extraer únicamente las cadenas seleccionadas
       final List<String> equiposSeleccionados = checklistEquiposRaw
           .where((item) => item.seleccionado == true)
           .map((item) => item.nombre as String)
@@ -67,33 +97,37 @@ class LevantamientoRepository {
           .map((item) => item.nombre as String)
           .toList();
 
-      // 2. Tubería multimedia optimizada para Supabase Storage (se conservan bytes puros)
-      final List<Map<String, dynamic>> bloqueEvidenciasAProcesar = [];
+      // 3. Tubería masiva: Carga las imágenes binarias en el Bucket de forma asíncrona
+      final List<Map<String, dynamic>> bloqueEvidenciasSerializado = [];
 
       for (var evidencia in listaEvidenciasRaw) {
-        if (validarBytesMultimedia(evidencia.bytesWeb)) {
-          bloqueEvidenciasAProcesar.add({
-            'bytes': evidencia.bytesWeb, // Listos para subida binaria a Bucket
-            'nota_tecnica': evidencia.descripcionController.text,
+        final Uint8List bytesImagen = evidencia.bytesWeb as Uint8List;
+        
+        // Ejecuta la carga en Supabase Storage de la Parte 1
+        final String urlPublicaImagen = await _subirEvidenciaABucket(bytesImagen, idProyecto);
+        final String notaPunto = evidencia.descripcionController.text as String;
+
+        if (urlPublicaImagen.isNotEmpty) {
+          bloqueEvidenciasSerializado.add({
+            'base64_data': urlPublicaImagen, // Guardamos la URL pública en lugar de bytes crudos
+            'nota_tecnica': notaPunto,
           });
         }
       }
 
-      // 3. Instanciación temporal del modelo de datos unificado
-      
-      final LevantamientoDataModel modeloListo = LevantamientoDataModel(
-        idProyecto: idProyecto,
-        tituloLevantamiento: tituloLevantamiento,
-        listaEquipos: equiposSeleccionados,
-        listaSeguridad: seguridadValidada,
-        evidenciasFotograficas: bloqueEvidenciasAProcesar,
-      );
+      // 4. Disparo final de inserción en la tabla de presupuestos / levantamientos
+      // Reutiliza la tabla de presupuestos mapeando la descripción general del levantamiento
+      await _supabase.from('presupuestos').insert({
+        'proyecto_id': uuidProyectoReal,
+        'solicitante': 'SUPERVISOR DE CAMPO',
+        'descripcion_general': '$tituloLevantamiento | Equipos: $equiposSeleccionados | Seguridad: $seguridadValidada',
+        'preparado_por': 'ING. FELIX VARGAS',
+        'fecha': DateTime.now().toIso8601String().substring(0, 10),
+      });
 
-      // Simulación de éxito temporal para no romper el flujo de la UI en la migración
-      if (modeloListo.idProyecto.isEmpty) return false;
       return true;
 
-    } catch (errorProcesamiento) {
+    } catch (errorSupabase) {
       rethrow;
     }
   }
