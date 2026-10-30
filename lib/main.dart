@@ -1,16 +1,23 @@
+/*
+ * ============================================================================
+ *         🦺 CONTROL DE OBRA — ARCHIVO PRINCIPAL DE ENTRADA
+ * ============================================================================
+ * Desarrollado para: Ing. Félix Vargas
+ * Ruta Física: lib/main.dart
+ * Lenguaje: Dart (Flutter)
+ * Diseño: Material 3 Adaptativo (PC / Tablet / Móvil)
+ * ============================================================================
+ */
+
 import 'package:flutter/material.dart';
 import 'modules/levantamientos/presentation/levantamiento_screen.dart';
-
-
-
 
 void main() {
   runApp(const ControlDeObraApp());
 }
 
 /// Punto de entrada principal de la aplicación corporativa "Control De Obra".
-/// Configura los parámetros globales de diseño, temas visuales y enrutamiento.
-/// Adaptado por completo a los estándares modernos de Material 3.
+/// Configura los parámetros globales de diseño, temas visuales y paleta corporativa.
 class ControlDeObraApp extends StatelessWidget {
   const ControlDeObraApp({super.key});
 
@@ -23,7 +30,7 @@ class ControlDeObraApp extends StatelessWidget {
         useMaterial3: true,
         brightness: Brightness.light,
         
-        // Paleta de colores de alto nivel (Azules y Grises Corporativos unificados)
+        // Paleta de colores institucionales unificada (Azules, Grises y Verdes de Campo)
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF102A43),
           primary: const Color(0xFF102A43),
@@ -33,7 +40,7 @@ class ControlDeObraApp extends StatelessWidget {
           error: const Color(0xFFD32F2F),
         ),
         
-        // Configuración de tipografías legibles tanto para campo como para oficina
+        // Tipografías legibles optimizadas para dispositivos de supervisión
         textTheme: const TextTheme(
           headlineMedium: TextStyle(
             fontSize: 28,
@@ -56,7 +63,6 @@ class ControlDeObraApp extends StatelessWidget {
           ),
         ),
         
-        // CORRECCIÓN: Estilización global utilizando CardThemeData para compatibilidad
         cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 2,
@@ -70,9 +76,7 @@ class ControlDeObraApp extends StatelessWidget {
     );
   }
 }
-
-/// Pantalla base del Dashboard que implementa un diseño dual (PC y Celular).
-/// Controla la distribución espacial dependiendo del tamaño del viewport.
+/// Pantalla base del Dashboard que implementa la distribución responsiva adaptativa.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -83,7 +87,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _moduloSeleccionado = 0;
 
-  // Lista unificada de módulos del sistema supervisor con metadatos descriptivos
+  // Catálogo modular del sistema supervisor.
+  // NOTA DE MIGRACIÓN: Los IDs internos servirán para mapear los permisos de Supabase Auth en el futuro.
   final List<Map<String, dynamic>> _itemsModulos = [
     {
       'titulo': 'CRM Comercial',
@@ -115,49 +120,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     },
   ];
 
-  /// Actualiza de forma reactiva el estado del bloque modular activo
   void _cambiarModulo(int index) {
     setState(() {
       _moduloSeleccionado = index;
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    // Evaluación del ancho de pantalla en tiempo real para diseño responsivo
     final double anchoPantalla = MediaQuery.of(context).size.width;
     final bool esComputadora = anchoPantalla > 900;
     final bool esTablet = anchoPantalla <= 900 && anchoPantalla > 600;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      // Barra superior adaptativa corporativa
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.primary,
         iconTheme: const IconThemeData(color: Colors.white, size: 24),
         title: Row(
           children: [
-            const Icon(
-              Icons.construction_rounded,
-              color: Colors.white,
-              size: 26,
-            ),
+            const Icon(Icons.construction_rounded, color: Colors.white, size: 26),
             const SizedBox(width: 12),
             Text(
               'CONTROL DE OBRA',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.surface, // CORRECCIÓN: Evita el uso de background
+                color: Theme.of(context).colorScheme.surface,
                 fontSize: 20,
                 letterSpacing: 1.2,
               ),
             ),
           ],
         ),
-      actions: const [],
-
       ),
-      // El menú lateral izquierdo desplegable solo se activa en dispositivos móviles o tablets
       drawer: esComputadora ? null : AppDrawer(
         modulos: _itemsModulos,
         seleccionado: _moduloSeleccionado,
@@ -168,14 +164,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Row(
         children: [
-          // Si es PC, inyectamos el panel de navegación lateral de forma fija
           if (esComputadora)
             NavigationSidebar(
               modulos: _itemsModulos,
               seleccionado: _moduloSeleccionado,
               onTap: _cambiarModulo,
             ),
-          // Contenedor principal de la aplicación
           Expanded(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -183,17 +177,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Theme.of(context).colorScheme.surface,
               child: CustomScrollView(
                 slivers: [
-                  // Cabecera dinámica de bienvenida dentro del área de trabajo
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 32, 32, 16), // CORRECCIÓN: Reemplazado fromSTEB por fromLTRB
+                      padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Panel de Supervisión',
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
+                          Text('Panel de Supervisión', style: Theme.of(context).textTheme.headlineMedium),
                           const SizedBox(height: 8),
                           Text(
                             'Gestión técnica, presupuestos y control operativo en tiempo real.',
@@ -205,7 +195,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  // CORRECCIÓN: Estructuración correcta del SliverGrid utilizando delegate
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     sliver: SliverGrid(
@@ -226,51 +215,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: item['color'] as Color,
                             esActivo: esActivo,
                             onTap: () {
-  _cambiarModulo(index);
-  if (index == 1) { // 100% verificado: el índice 1 es Levantamientos
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const LevantamientoScreen(
-          idProyecto: 'PRY-2026-001',
-          nombreObra: 'Remodelación de Fachada Corporativa Centro',
-        ),
-      ),
-    );
-  }
-},
-
+                              _cambiarModulo(index);
+                              if (index == 1) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LevantamientoScreen(
+                                      idProyecto: 'PRY-2026-001',
+                                      nombreObra: 'Remodelación de Fachada Corporativa Centro',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           );
                         },
                         childCount: _itemsModulos.length,
                       ),
                     ),
                   ),
-                  // Sección inferior: Panel de Métricas Rápidas y Estatus de Obra
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 16, 32, 32), // CORRECCIÓN: Reemplazado fromSTEB por fromLTRB
+                      padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
-                          Text(
-                            'Resumen Operativo Global',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
+                          Text('Resumen Operativo Global', style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 8),
                           Text(
-                            'Datos consolidados directamente desde tu Google Sheets central.',
+                            'Datos consolidados directamente desde la base de datos centralizado.',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 24),
-                          // Distribución adaptativa de bloques informativos
                           LayoutBuilder(
                             builder: (context, constraints) {
                               final bool usarFila = constraints.maxWidth > 750;
                               if (usarFila) {
-                                return Row(
-                                  children: const [
+                                return const Row(
+                                  children: [
                                     Expanded(child: MetricTile(titulo: 'Proyectos Activos', valor: '12 frentes', icono: Icons.business, color: Color(0xFF1976D2))),
                                     SizedBox(width: 24),
                                     Expanded(child: MetricTile(titulo: 'Levantamientos Pendientes', valor: '4 sitios', icono: Icons.explore, color: Color(0xFF388E3C))),
@@ -279,8 +262,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ],
                                 );
                               } else {
-                                return Column(
-                                  children: const [
+                                return const Column(
+                                  children: [
                                     MetricTile(titulo: 'Proyectos Activos', valor: '12 frentes', icono: Icons.business, color: Color(0xFF1976D2)),
                                     SizedBox(height: 16),
                                     MetricTile(titulo: 'Levantamientos Pendientes', valor: '4 sitios', icono: Icons.explore, color: Color(0xFF388E3C)),
@@ -292,7 +275,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             },
                           ),
                           const SizedBox(height: 32),
-                          // Bloque de advertencia o alertas de obra en curso
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(20),
@@ -307,10 +289,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-  crossAxisAlignment: CrossAxisAlignment.start, // Se corrigió la sintaxis agregando AxisAlignment
-  children: const [
-    Text(
-
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: const [
+                                      Text(
                                         'Bitácora Diaria — Recordatorio de Supervisión',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF856404), fontSize: 15),
                                       ),
@@ -363,8 +344,7 @@ class MetricTile extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE4E9F0), width: 1),
         boxShadow: [
           BoxShadow(
-           color: Colors.black.withValues(alpha: 0.02),
-
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -404,7 +384,6 @@ class MetricTile extends StatelessWidget {
 }
 
 /// Widget de tarjeta interactiva y estilizada que representa cada módulo operativo.
-/// Detecta estados de selección táctil y de ratón (hover) para ofrecer retroalimentación dinámica.
 class ModuloCard extends StatefulWidget {
   final String titulo;
   final String subtitulo;
@@ -440,9 +419,7 @@ class _ModuloCardState extends State<ModuloCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.fastOutSlowIn,
-        transform: resaltar 
-            ? Matrix4.translationValues(0.0, -6.0, 0.0)
-            : Matrix4.identity(),
+        transform: resaltar ? Matrix4.translationValues(0.0, -6.0, 0.0) : Matrix4.identity(),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -452,9 +429,7 @@ class _ModuloCardState extends State<ModuloCard> {
           ),
           boxShadow: [
             BoxShadow(
-              color: resaltar 
-                  ? widget.color.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: 0.15),
+              color: resaltar ? widget.color.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.15),
               blurRadius: resaltar ? 16 : 8,
               offset: resaltar ? const Offset(0, 8) : const Offset(0, 4),
             ),
@@ -473,24 +448,16 @@ class _ModuloCardState extends State<ModuloCard> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Contenedor geométrico para el icono decorativo del módulo
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: resaltar 
-                          ? widget.color 
-                          : widget.color.withValues(alpha: 0.01),
+                      color: resaltar ? widget.color : widget.color.withValues(alpha: 0.01),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(
-                      widget.icono,
-                      size: 32,
-                      color: resaltar ? Colors.white : widget.color,
-                    ),
+                    child: Icon(widget.icono, size: 32, color: resaltar ? Colors.white : widget.color),
                   ),
                   const Spacer(),
-                  // Bloque textual: Título principal del frente operativo
                   Text(
                     widget.titulo,
                     style: TextStyle(
@@ -501,19 +468,13 @@ class _ModuloCardState extends State<ModuloCard> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  // Bloque textual: Subtítulo o descripción resumida del alcance
                   Text(
                     widget.subtitulo,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF627D98),
-                      height: 1.4,
-                    ),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF627D98), height: 1.4),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  // Indicador visual de módulo actualmente seleccionado
                   if (widget.esActivo)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
@@ -523,11 +484,7 @@ class _ModuloCardState extends State<ModuloCard> {
                           const SizedBox(width: 6),
                           Text(
                             'Modulo Seleccionado',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: widget.color,
-                            ),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: widget.color),
                           ),
                         ],
                       ),
@@ -541,9 +498,7 @@ class _ModuloCardState extends State<ModuloCard> {
     );
   }
 }
-
-/// Panel de navegación lateral izquierdo fijo diseñado para pantallas de PC y Escritorio.
-/// Muestra un perfil rápido del supervisor y permite cambiar de módulo de forma directa.
+/// Panel de navegación lateral izquierdo fijo diseñado para pantallas de Escritorio.
 class NavigationSidebar extends StatelessWidget {
   final List<Map<String, dynamic>> modulos;
   final int seleccionado;
@@ -560,18 +515,14 @@ class NavigationSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 280,
-height: double.infinity,
-decoration: const BoxDecoration(
-  color: Color(0xFFF0F4F8),
-  border: Border(
-    right: BorderSide(color: Color(0xFFD9E2EC), width: 1.5),
-  ),
-),
-
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF0F4F8),
+        border: Border(right: BorderSide(color: Color(0xFFD9E2EC), width: 1.5)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Sección Superior: Identificación del Supervisor Activo
           Container(
             padding: const EdgeInsets.all(24),
             color: const Color(0xFF102A43),
@@ -582,47 +533,23 @@ decoration: const BoxDecoration(
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Color(0xFF1976D2),
-                  child: Icon(
-                    Icons.person_pin_rounded,
-                    color: Colors.white,
-                    size: 36,
-                  ),
+                  child: Icon(Icons.person_pin_rounded, color: Colors.white, size: 36),
                 ),
                 SizedBox(height: 16),
-                Text(
-                  'Ing. Félix Vargas',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text('Ing. Félix Vargas', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
-                Text(
-                  'Supervisor de Obra',
-                  style: TextStyle(
-                    color: Color(0xFFBCCCDC),
-                    fontSize: 13,
-                  ),
-                ),
+                Text('Supervisor de Obra', style: TextStyle(color: Color(0xFFBCCCDC), fontSize: 13)),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          // Título de la sección de navegación
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
             child: Text(
               'MÓDULOS DE TRABAJO',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF627D98),
-                letterSpacing: 1.5,
-              ),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF627D98), letterSpacing: 1.5),
             ),
           ),
-          // Menú Dinámico: Lista de frentes de obra mapeados
           Expanded(
             child: ListView.builder(
               itemCount: modulos.length,
@@ -651,16 +578,13 @@ decoration: const BoxDecoration(
                     ),
                     selected: esActivo,
                     selectedTileColor: colorModulo.withValues(alpha: 0.12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     onTap: () => onTap(index),
                   ),
                 );
               },
             ),
           ),
-          // Pie de barra lateral: Versión del sistema supervisor
           const Divider(height: 1, color: Color(0xFFD9E2EC)),
           Padding(
             padding: const EdgeInsets.all(20.0),
@@ -670,11 +594,7 @@ decoration: const BoxDecoration(
                 SizedBox(width: 8),
                 Text(
                   'v1.0.0 — Octubre 2026',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9FB3C8),
-                    fontFamily: 'Courier',
-                  ),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF9FB3C8), fontFamily: 'Courier'),
                 ),
               ],
             ),
@@ -685,8 +605,7 @@ decoration: const BoxDecoration(
   }
 }
 
-/// Menú lateral desplegable (Drawer) diseñado y optimizado para dispositivos móviles.
-/// Permite al supervisor cambiar de módulo cómodamente desde pantallas táctiles en campo.
+/// Menú lateral desplegable (Drawer) optimizado para dispositivos móviles en campo.
 class AppDrawer extends StatelessWidget {
   final List<Map<String, dynamic>> modulos;
   final int seleccionado;
@@ -704,21 +623,15 @@ class AppDrawer extends StatelessWidget {
     return Drawer(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.only(topRight: Radius.circular(24), bottomRight: Radius.circular(24)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabecera del menú móvil: Perfil del Ingeniero Supervisor
           DrawerHeader(
             decoration: const BoxDecoration(
               color: Color(0xFF102A43),
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(22),
-              ),
+              borderRadius: BorderRadius.only(topRight: Radius.circular(22)),
             ),
             margin: EdgeInsets.zero,
             child: Row(
@@ -726,11 +639,7 @@ class AppDrawer extends StatelessWidget {
                 const CircleAvatar(
                   radius: 26,
                   backgroundColor: Color(0xFF1976D2),
-                  child: Icon(
-                    Icons.engineering_rounded,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+                  child: Icon(Icons.engineering_rounded, color: Colors.white, size: 30),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -740,75 +649,26 @@ class AppDrawer extends StatelessWidget {
                     children: const [
                       Text(
                         'Ing. Félix Vargas',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 4),
-                      Text(
-                        'Supervisor Activo',
-                        style: TextStyle(
-                          color: Color(0xFFBCCCDC),
-                          fontSize: 12,
-                        ),
-                      ),
+                      Text('Supervisor Activo', style: TextStyle(color: Color(0xFFBCCCDC), fontSize: 12)),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-                    const SizedBox(height: 16),
-          // Indicador de sincronización reubicado para evitar colisiones visuales
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF388E3C).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF388E3C).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  CircleAvatar(
-                    radius: 4,
-                    backgroundColor: Color(0xFF388E3C),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Estatus: Nube Sincronizada',
-                    style: TextStyle(
-                      color: Color(0xFF102A43),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Etiqueta indicadora de navegación móvil
+          const SizedBox(height: 16),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
             child: Text(
               'FRENTES OPERATIVOS',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF9FB3C8),
-                letterSpacing: 1.2,
-              ),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9FB3C8), letterSpacing: 1.2),
             ),
           ),
-
-          // Lista de opciones seleccionables del Drawer
           Expanded(
             child: ListView.builder(
               itemCount: modulos.length,
@@ -840,27 +700,20 @@ class AppDrawer extends StatelessWidget {
                         : const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFBCCCDC)),
                     selected: esActivo,
                     selectedTileColor: colorModulo.withValues(alpha: 0.01),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     onTap: () => onTap(index),
                   ),
                 );
               },
             ),
           ),
-          // Cierre inferior del menú: Identificativo de la empresa
           const Divider(height: 1, color: Color(0xFFE4E9F0)),
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Center(
               child: Text(
                 'Control de Obra Mobile Hub',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9FB3C8).withValues(alpha: 0.08),
-                ),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF9FB3C8).withValues(alpha: 0.8)),
               ),
             ),
           ),
